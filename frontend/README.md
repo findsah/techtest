@@ -1,36 +1,191 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Games Library Frontend
+
+A Next.js frontend application that displays a games library with proper loading and error state handling.
+
+## Features
+
+- ✅ **Loading State**: Displays a spinner while fetching data from the API
+- ✅ **Error State**: Shows user-friendly error messages when API requests fail
+- ✅ **Success State**: Renders games in a responsive grid layout
+- ✅ **Search Integration**: Search games by name with real-time backend filtering
+- ✅ **Responsive Design**: Mobile-friendly UI using Tailwind CSS
+- ✅ **TypeScript**: Fully typed React components
+- ✅ **Clean Code**: Well-documented and maintainable code
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ 
+- npm or yarn
+
+### Installation
+
+```bash
+cd frontend
+npm install
+```
+
+### Running the Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The application will be available at `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To view the games library, navigate to `http://localhost:3000/games`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Environment Setup
 
-## Learn More
+Make sure the backend API is running on `http://localhost:5000` before testing the games page.
 
-To learn more about Next.js, take a look at the following resources:
+To start the backend:
+```bash
+cd ..
+npm start
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+frontend/
+├── src/
+│   ├── app/
+│   │   ├── page.tsx           # Home page with navigation
+│   │   ├── layout.tsx         # Root layout
+│   │   ├── globals.css        # Global styles
+│   │   └── games/
+│   │       └── page.tsx       # Games page with state handling
+│   └── ...
+├── package.json
+├── tsconfig.json
+├── tailwind.config.ts
+└── next.config.ts
+```
 
-## Deploy on Vercel
+## Component Details
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### GamesPage Component (`src/app/games/page.tsx`)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The main component that handles three distinct states:
+
+#### 1. Loading State
+- Displays a spinning loader while fetching data
+- Shows "Loading games..." message with helpful text
+- Prevents layout shift during loading
+
+#### 2. Error State
+- Shows user-friendly error message
+- Displays error details for debugging
+- Includes a "Refresh Page" button to retry
+- Uses red styling to indicate error condition
+
+#### 3. Success State
+- Displays games in a responsive grid (1 column on mobile, 2 on tablet, 3 on desktop)
+- Shows game details: name, developer, platform, release year, and rating
+- Implements search functionality that filters games in real-time
+- Shows "No results" message when search returns no games
+
+### State Management
+
+```typescript
+const [games, setGames] = useState<Game[]>([]);           // Stores fetched games
+const [loading, setLoading] = useState(true);             // Loading state
+const [error, setError] = useState<string | null>(null);  // Error message
+const [searchQuery, setSearchQuery] = useState('');       // Search input
+```
+
+### Data Fetching
+
+Uses `useEffect` hook to fetch data when component mounts or search query changes:
+
+```typescript
+useEffect(() => {
+  const fetchGames = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const query = searchQuery ? `?search=${encodeURIComponent(searchQuery)}` : '';
+      const response = await fetch(`http://localhost:5000/api/games${query}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load game data. Status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setGames(data.data || []);
+    } catch (err) {
+      setError('Failed to load game data. Please refresh the page.');
+      setGames([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  fetchGames();
+}, [searchQuery]);
+```
+
+## Styling
+
+The application uses Tailwind CSS for styling with:
+- Dark theme (slate-900 to slate-800 gradient background)
+- Blue accent colors for interactive elements
+- Red styling for error states
+- Yellow for rating displays
+- Responsive spacing and grid layouts
+
+## Testing
+
+### Manual Testing Steps
+
+1. **Test Loading State**: The loading spinner should appear briefly when the page loads
+2. **Test Success State**: Games should appear in a grid after loading completes
+3. **Test Search**: Type in the search box to filter games (e.g., "zelda", "witcher")
+4. **Test Error Handling**: Temporarily stop the backend API and refresh to see error state
+5. **Test Responsive Design**: Resize the browser window to test mobile and tablet layouts
+
+### API Endpoints Used
+
+- `GET /api/games` - Fetch all games
+- `GET /api/games?search=keyword` - Search games by name
+
+## Technologies
+
+- **Next.js 16.x** - React framework with App Router
+- **React 18+** - UI library
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Utility-first CSS framework
+- **JavaScript Fetch API** - Data fetching
+
+## Development Best Practices
+
+- ✅ React hooks (useState, useEffect) for state and side effects
+- ✅ Error handling and validation
+- ✅ Loading state management
+- ✅ Responsive mobile-first design
+- ✅ Accessibility considerations
+- ✅ Clean, readable code with comments
+- ✅ TypeScript for type safety
+
+## Build for Production
+
+```bash
+npm run build
+npm run start
+```
+
+## What This Implementation Tests
+
+- React/Next.js state handling
+- useEffect and async data fetching
+- UI/UX awareness (proper feedback for all states)
+- Conditional rendering
+- Clean frontend coding practices
+- API integration
+- Error handling
+- Loading states
+- Search/filter functionality
+
